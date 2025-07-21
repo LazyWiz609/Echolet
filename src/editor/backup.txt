@@ -1,0 +1,41 @@
+🚀 Phase 1: Polish the Core Editor UX
+This phase focuses on making the existing tools more accessible and adding fundamental editor features.
+
+Floating Icon Toolbar: Create the circular, glass-effect toolbar on the side. This will be the new home for adding content.
+
+Drag-and-Drop Content: Implement the logic to drag an icon (like "Image") from the toolbar and drop it onto an empty section to add that content type.
+
+Canvas Mode Button: Add the grid/mesh icon to toggle the Alt key functionality, making the editor more mouse-friendly.
+
+Undo/Redo: This is a crucial feature for any editor. We'll need to implement a system to track changes to the layout state so the user can step backward (Ctrl+Z) and forward (Ctrl+Y).
+
+✨ Phase 2: Enhance Content Editing
+Once the core UX is polished, we can focus on giving the user more control over the content itself.
+
+Contextual Editing Menus: When a user selects a section with content, a small menu appears with relevant options. This keeps the interface clean.
+
+Basic Text Options: Implement the text editing menu with bold, alignment, lists, and font controls.
+
+Image Properties: Implement the image editing menu with sliders for brightness, contrast, etc. This can be done with CSS filters.
+
+GIF Support: This is a relatively easy win. We'll ensure that when a user uploads a .gif file, it's rendered as an animated image and not a static one.
+
+🛠️ Phase 3: Advanced Layout & Structure
+This phase tackles the more complex layout manipulation and new structural elements.
+
+Adjustable Column Sizes: Implement the ability to grab the border between two sibling sections and drag it to resize them. The adjacent column will shrink or grow accordingly. This is a complex but very powerful layout feature.
+
+Stickers (Free-Floating Elements): Introduce a new type of content that isn't bound by the grid. These will be items that can be dragged and placed anywhere on the canvas, with their x and y coordinates saved independently.
+
+"Layered Columns" (Floating Containers): This is a brilliant evolution of the sticker concept. We'll create a special type of "sticker" that is actually a fully functional, splittable section. It can contain its own content and acts like a floating canvas-within-a-canvas.
+
+🌐 Phase 4: Project Management & Publishing
+This phase graduates the tool from a single-page editor to a multi-page project builder.
+
+Multi-Page Architecture: Introduce the concept of a "Project" that can contain multiple "Pages". The user will be able to switch between pages.
+
+Hyperlinks (Internal & External): Implement the hyperlink feature, allowing links to external URLs and, crucially, to other pages within the same project.
+
+Publishing Workflow: Build the UI and logic for Save Draft, Publish, and creating a private, shareable link.
+
+Preview Mode: The "Preview" button will open a new, clean tab that renders the final page without any of the editor UI, showing exactly what a visitor would see.
