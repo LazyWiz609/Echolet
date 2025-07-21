@@ -6,8 +6,67 @@ import {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from "react";
 import { Trash2, Move } from "lucide-react";
+
+// Custom Hook for State History (Undo/Redo)
+const useHistoryState = <T,>(initialState: T) => {
+  const [history, setHistory] = useState<{ past: T[], present: T, future: T[] }>({
+    past: [],
+    present: initialState,
+    future: [],
+  });
+
+  const setState = useCallback((newState: T | ((prevState: T) => T)) => {
+    setHistory(currentHistory => {
+      const newPresent = newState instanceof Function ? newState(currentHistory.present) : newState;
+      if (JSON.stringify(newPresent) === JSON.stringify(currentHistory.present)) {
+        return currentHistory; // No change, don't add to history
+      }
+      return {
+        past: [...currentHistory.past, currentHistory.present],
+        present: newPresent,
+        future: [], // Clear future on new action
+      };
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setHistory(currentHistory => {
+      if (currentHistory.past.length === 0) return currentHistory;
+      const previous = currentHistory.past[currentHistory.past.length - 1];
+      const newPast = currentHistory.past.slice(0, currentHistory.past.length - 1);
+      return {
+        past: newPast,
+        present: previous,
+        future: [currentHistory.present, ...currentHistory.future],
+      };
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setHistory(currentHistory => {
+      if (currentHistory.future.length === 0) return currentHistory;
+      const next = currentHistory.future[0];
+      const newFuture = currentHistory.future.slice(1);
+      return {
+        past: [...currentHistory.past, currentHistory.present],
+        present: next,
+        future: newFuture,
+      };
+    });
+  }, []);
+
+  return { 
+    state: history.present, 
+    setState, 
+    undo, 
+    redo, 
+    canUndo: history.past.length > 0, 
+    canRedo: history.future.length > 0 
+  };
+};
 import Toolbar, { type DraggableContentType } from "./Toolbar";
 
 // --- Types (Unchanged) ---
@@ -120,7 +179,7 @@ export default function EditorCanvas() {
   const isCtrlPressed = useRef(false);
   const mousePosition = useRef({ x: 0, y: 0 });
 
-  const [sections, setSections] = useState<Section[]>([]);
+  const { state: sections, setState: setSections, undo, redo } = useHistoryState<Section[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   );
@@ -207,19 +266,30 @@ export default function EditorCanvas() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Backspace" && selectedSectionId) {
+      // Undo/Redo shortcuts
+      const isUndo = (e.metaKey || e.ctrlKey) && e.key === 'z';
+      const isRedo = (e.metaKey || e.ctrlKey) && e.key === 'y';
+
+      if (isUndo) {
+        e.preventDefault();
+        undo();
+        return;
+      } else if (isRedo) {
+        e.preventDefault();
+        redo();
+        return;
+      } else if (e.key === "Backspace" && selectedSectionId) {
         e.preventDefault();
         handleDeleteSection(selectedSectionId);
-      }
-      if (e.key === "Enter" && editingSectionId) {
+      } else if (e.key === "Enter" && editingSectionId) {
         e.preventDefault();
         setEditingSectionId(null);
-      }
-      if (e.key === "Alt") {
+      } else if (e.key === "Alt") {
         e.preventDefault();
         toggleCanvasMode();
+      } else if (e.key === "Control") {
+        isCtrlPressed.current = true;
       }
-      if (e.key === "Control") isCtrlPressed.current = true;
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === "Control") isCtrlPressed.current = false;
